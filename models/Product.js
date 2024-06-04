@@ -1,6 +1,6 @@
 const mongoose = require("mongoose")
 const Schema = mongoose.Schema;
-const ProductSchema = Schema({
+const productSchema = Schema({
     sku:{
         type:String,
         required:true,
@@ -40,7 +40,7 @@ const ProductSchema = Schema({
     }
 },{timestamps:true})
 
-ProductSchema.methods.toJSON = function() {
+productSchema.methods.toJSON = function() {
     const obj = this._doc;
     delete obj.__v;
     delete obj.updateAt;
@@ -48,5 +48,5 @@ ProductSchema.methods.toJSON = function() {
     return obj;
 };
 
-const Product = mongoose.model("Product",ProductSchema);
+const Product = mongoose.model("Product",productSchema);
 module.exports = Product;

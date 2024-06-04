@@ -37,6 +37,19 @@ authController.authenticate = async (req,res,next) => {
     }catch(error){
         res.status(400).json({status:"fail",error:error.message})
     }
-}
+};
+
+authController.checkAdminPermission = async(req,res,next) => {
+    try{
+        //admin확인은 token 값에서 할 수 있음
+        //authController.authenticate에서 이미 토큰 확인 가능 -> 미들웨어로 사용
+        const {userId} = req;
+        const user = await User.findById(userId);
+        if(user.level !== "admin") throw new Error("no permission");
+        next();
+    }catch(error){
+        res.status(400).json({status:"fail",error:error.message});
+    }
+};
 
 module.exports = authController;
