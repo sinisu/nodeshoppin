@@ -10,4 +10,6 @@ authController.authenticate,
 authController.checkAdminPermission,
 productController.createProduct);
 
+router.get('/',productController.getProducts)
+
 module.exports = router;
