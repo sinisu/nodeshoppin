@@ -17,9 +17,11 @@ productController.createProduct = async(req,res) =>{
 productController.getProducts = async(req,res) => {
     try{
         const {page,name,pagesize} = req.query;
-        const cond = name?{name:{$regex:name,$options:'i'}}:{};
-        let query = Product.find(cond);
         let response = {status:"success"};
+        const cond = name
+            ?{name:{$regex:name,$options:'i'},isDeleted:false}
+            :{isDeleted:false};
+        let query = Product.find(cond);
         // 아래 방식은 조건이 늘어날 때 마다 구문을 새로 써야 하므로 비효율적
         // if(name){
         //     const product = await Product.find({name:{
@@ -53,6 +55,17 @@ productController.getProducts = async(req,res) => {
     };
 }
 
+productController.getProductById = async(req,res) => {
+    try{
+        const productId = req.params.id;
+        const product = await Product.findById(productId);
+        if(!product) throw new Error("Can not find Item");
+        res.status(200).json({status:"success",data:product});
+    }catch(error){
+        res.status(400).json({status:"fail",error:error.message});
+    }
+}
+
 productController.updateProduct = async(req,res) => {
     try{
         const productId = req.params.id;
@@ -61,6 +74,20 @@ productController.updateProduct = async(req,res) => {
             {_id:productId},
             {sku,name,size,image,category,description,price,stock,status},
             {new:true}
+        );
+        if(!product) throw new Error("item doesn't exist");
+        res.status(200).json({status:"success", data: product});
+    }catch(error){
+        res.status(400).json({status:"fail",error:error.message});
+    }
+}
+
+productController.deleteProduct = async(req,res) => {
+    try{
+        const productId = req.params.id;
+        const product = await Product.findByIdAndUpdate(
+            {_id:productId},
+            {isDeleted:true}
         );
         if(!product) throw new Error("item doesn't exist");
         res.status(200).json({status:"success", data: product});

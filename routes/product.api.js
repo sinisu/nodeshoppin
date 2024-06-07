@@ -12,11 +12,18 @@ router.post('/',
 );
 
 router.get('/',productController.getProducts);
+router.get('/:id',productController.getProductById); // get라우터를 2개 만들어도 된다!
 
 router.put('/:id',
     authController.authenticate,
     authController.checkAdminPermission,
     productController.updateProduct
 );
+
+router.delete('/:id',
+    authController.authenticate,
+    authController.checkAdminPermission,
+    productController.deleteProduct
+)
 
 module.exports = router;
