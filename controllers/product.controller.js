@@ -35,7 +35,7 @@ productController.getProducts = async(req,res) => {
         if(page){
             // skip,limit은 mongoose의 함수
             // skip은 data값을 skip해 줌
-            // limit은 최대 몇 개씩 보여줄 것인지 
+            // limit은 최대 몇 개씩 보여줄 것인지
             query.skip((page-1)*PAGE_SIZE).limit(PAGE_SIZE);
             // 전체 페이지
             // 데이터 총 개수
