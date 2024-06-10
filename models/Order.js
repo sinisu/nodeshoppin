@@ -1,9 +1,10 @@
 const mongoose = require("mongoose");
 const Product = require("./Product");
+const User = require("./User");
 const Schema = mongoose.Schema;
 const orderSchema = Schema({
     userId:{
-        type:mongoose.objectId,
+        type:mongoose.ObjectId,
         ref:User
     },
     shipTo:{
@@ -20,7 +21,7 @@ const orderSchema = Schema({
     },
     items:[{
         productId:{
-            type:mongoose.objectId,
+            type:mongoose.ObjectId,
             ref:Product
         },
         size:{
