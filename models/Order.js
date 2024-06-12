@@ -1,6 +1,7 @@
 const mongoose = require("mongoose");
 const Product = require("./Product");
 const User = require("./User");
+const Cart = require("./Cart");
 const Schema = mongoose.Schema;
 const orderSchema = Schema({
     userId:{
@@ -57,5 +58,12 @@ orderSchema.methods.toJson = function() {
     return obj
 }
 
-const Order = mongoose.model("Order",orderSchema)
+orderSchema.post("save", async function () {
+    //카트 비우기
+    const cart = await Cart.findOne({userId:this.userId});
+    cart.items=[];
+    await cart.save();
+});
+
+const Order = mongoose.model("Order",orderSchema);
 module.exports = Order;

@@ -96,37 +96,70 @@ productController.deleteProduct = async(req,res) => {
     }
 }
 
-productController.checkStock = async(item) => {
-    //내가 사려는 아이템 재고 정보 가져오기
-    const product = await Product.findById(item.productId);
-    //내가 사려는 아이템 qty, 재고 비교
-    if(product.stock[item.size] < item.qty) {
-        //재고가 불충분하면 불충분 메세지와 함께 데이터 반환
-        return {isVerify:false,message:`${product.name}의 ${item.size} 재고가 부족합니다.`}
-    }
-    const newStock = {...product.stock}
-    newStock[item.size] -= item.qty
-    product.stock=newStock
-    await product.save();
-    //충분하다면 재고에서 -qty -> 성공 결과 보내기
-    return {isVerify:true}
-}
+// productController.checkStock = async(item) => {
+//     //내가 사려는 아이템 재고 정보 가져오기
+//     const product = await Product.findById(item.productId);
+//     //내가 사려는 아이템 qty, 재고 비교
+//     if(product.stock[item.size] < item.qty) {
+//         //재고가 불충분하면 불충분 메세지와 함께 데이터 반환
+//         return {isVerify:false,message:`${product.name} ${item.size}사이즈의 재고가 부족합니다.`}
+//     }
+//     const newStock = {...product.stock}
+//     newStock[item.size] -= item.qty
+//     product.stock=newStock
+//     await product.save();
+//     //충분하다면 재고에서 -qty -> 성공 결과 보내기
+//     return {isVerify:true}
+// }
 
 productController.checkItemListStock = async(itemList) => {
-    const insufficientStockItems = []; //재고가 불충분한 아이템 저장 예정
-    //재고확인 로직
-    // Promise.all 비동기 여러개 한번에 처리
-    await Promise.all(
-        itemList.map(async(item)=>{
-            const stockCheck = await productController.checkStock(item)
-            if(!stockCheck.isVerify){
-                insufficientStockItems.push({item,message:stockCheck.message})
-            }
-            return stockCheck;
-        })
-    );
+    try{
+        const products = await Product.find({
+            // $in은 MongoDB의 비교 연산자, 일치하는 값 찾아줌
+            _id:{$in: itemList.map((item)=>item.productId)},
+        });
 
-    return insufficientStockItems;
+        const productMap = products.reduce((map,product)=>{
+            map[product._id] = product;
+            return map;
+        },{});
+
+        const insufficientStockItems = itemList
+        .filter((item)=>{
+            const product = productMap[item.productId];
+            return product.stock[item.size] < item.qty;
+        })
+        .map((item)=>{
+            return {
+                item,
+                message:`${productMap[item.productId].name}의 ${item.size} 재고가 부족합니다.`,
+            };
+        });
+        return insufficientStockItems;
+    }catch(error){
+        throw new Error("재고 확인 중 오류가 발생했습니다.")
+    }
+};
+
+productController.reduceItemStock = async (itemList) => {
+    try{
+        await Promise.all(
+            itemList.map(async(item)=>{
+                const product = await Product.findById(item.productId);
+                // if(!product) {
+                //     throw new Error(`ID에 해당하는 제품을 찾을 수 없습니다: ${item.productId}`);
+                // };
+                // if (!product.stock[item.size]) {
+                //     throw new Error(`${product.name} 제품에 해당하는 사이즈 ${item.size}가 존재하지 않습니다.`);
+                //   }
+                
+                product.stock[item.size] -= item.qty;
+                return product.save()
+            })
+        );
+    }catch(error){
+        throw new Error(error.message);
+    };
 }
 
 module.exports = productController;
