@@ -64,7 +64,7 @@ orderController.getOrderList = async (req,res,next)=>{
         let cond = {};
         if(ordernum) {
             cond = {
-                orderNum: {$regex:ordernum, $option:"i"},
+                orderNum: {$regex:ordernum},
             };
         }
         const orderList = await Order.find(cond)
