@@ -146,15 +146,27 @@ productController.reduceItemStock = async (itemList) => {
         await Promise.all(
             itemList.map(async(item)=>{
                 const product = await Product.findById(item.productId);
-                // if(!product) {
-                //     throw new Error(`ID에 해당하는 제품을 찾을 수 없습니다: ${item.productId}`);
-                // };
-                // if (!product.stock[item.size]) {
-                //     throw new Error(`${product.name} 제품에 해당하는 사이즈 ${item.size}가 존재하지 않습니다.`);
-                //   }
+                if(!product) {
+                    throw new Error(`ID에 해당하는 제품을 찾을 수 없습니다: ${item.productId}`);
+                }
+                if (!product.stock[item.size]) {
+                    throw new Error(`${product.name} 제품에 해당하는 사이즈 ${item.size}가 존재하지 않습니다.`);
+                  }
+                if (product.stock[item.size] === undefined) {
+                    throw new Error(`${product.name} 제품에 해당하는 사이즈 ${item.size}가 정의되지 않았습니다.`);
+                }
+
+                const newStock = {...product.stock};
+                newStock[item.size] -= item.qty;
+                product.stock = newStock
                 
-                product.stock[item.size] -= item.qty;
-                return product.save()
+                await product.save()
+
+                if(product.stock != newStock) {
+                    throw new Error (`제품의 재고가 줄지 않았습니다!${product.stock},${newStock}`)
+                }
+
+                return product
             })
         );
     }catch(error){

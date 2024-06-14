@@ -60,9 +60,16 @@ orderSchema.methods.toJson = function() {
 
 orderSchema.post("save", async function () {
     //카트 비우기
-    const cart = await Cart.findOne({userId:this.userId});
-    cart.items=[];
-    await cart.save();
+    try{
+        const cart = await Cart.findOne({userId:this.userId});
+        if(cart){
+            cart.items=[];
+            await cart.save();    
+        }
+    } catch(error){
+        throw new Error(error.message);
+    }
+    
 });
 
 const Order = mongoose.model("Order",orderSchema);
