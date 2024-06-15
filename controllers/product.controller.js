@@ -16,11 +16,17 @@ productController.createProduct = async(req,res) =>{
 
 productController.getProducts = async(req,res) => {
     try{
-        const {page,name,pagesize} = req.query;
+        const {page,name,pagesize,category} = req.query;
         let response = {status:"success"};
-        const cond = name
-            ?{name:{$regex:name,$options:'i'},isDeleted:false}
-            :{isDeleted:false};
+        const cond = {
+            isDeleted: false,
+            ...(name && { name: { $regex: name, $options: 'i' } }),
+            ...(category && { category:category })
+          };
+            // name
+            // ?{name:{$regex:name,$options:'i'},isDeleted:false}
+            // :{isDeleted:false}||
+            // category?{category:category,isDeleted:false}:{isDeleted:false}
         let query = Product.find(cond);
         // 아래 방식은 조건이 늘어날 때 마다 구문을 새로 써야 하므로 비효율적
         // if(name){
